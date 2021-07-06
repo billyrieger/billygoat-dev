@@ -1,0 +1,77 @@
+[env]
+OUT_DIR = "./public"
+BIN_DIR = "./bin"
+
+PANDOC = "${BIN_DIR}/pandoc"
+PANDOC_KATEX = "${BIN_DIR}/pandoc-katex"
+SASS = "${BIN_DIR}/sass"
+
+URL_PANDOC = "https://github.com/jgm/pandoc/releases/download/2.14.0.3/pandoc-2.14.0.3-linux-amd64.tar.gz"
+URL_PANDOC_KATEX = "https://github.com/xu-cheng/pandoc-katex/releases/download/0.1.6/pandoc-katex-0.1.6-x86_64-unknown-linux-musl.tar.gz"
+URL_SASS = "https://github.com/sass/dart-sass/releases/download/1.35.1/dart-sass-1.35.1-linux-x64.tar.gz"
+
+PANDOC_KATEX_CONFIG_FILE = "pandoc_katex.toml"
+
+[tasks.install-pandoc]
+condition = { files_not_exist=["${PANDOC}"] }
+script = "curl -L ${URL_PANDOC} | tar -xz --directory ${BIN_DIR} --no-anchored --strip-components 2 pandoc"
+
+[tasks.install-pandoc-katex]
+condition = { files_not_exist=["${PANDOC_KATEX}"] }
+script = "curl -L ${URL_PANDOC_KATEX} | tar -xz --directory ${BIN_DIR} --no-anchored --strip-components 2 pandoc-katex"
+
+[tasks.install-sass]
+condition = { files_not_exist=["${SASS}"] }
+script = "curl -L ${URL_SASS} | tar -xz --directory ${BIN_DIR} --no-anchored --strip-components 1 sass"
+
+[tasks.install-binaries]
+dependencies = ["install-pandoc", "install-pandoc-katex", "install-sass"]
+
+[tasks.create-out-dir]
+condition = { files_not_exist=["${OUT_DIR}"] }
+script = "mkdir ${OUT_DIR}"
+
+[tasks.create-bin-dir]
+condition = { files_not_exist=["${BIN_DIR}"] }
+script = "mkdir ${BIN_DIR}"
+
+[tasks.create-dirs]
+dependencies = ["create-bin-dir", "create-out-dir"]
+
+[tasks.build-page]
+script = '''
+${PANDOC} \
+    --from markdown \
+    --to html \
+    --standalone \
+    --template templates/page.html \
+    --filter ${PANDOC_KATEX} \
+    --css style.css \
+    --output ${OUT_DIR}/index.html \
+    ${CURRENT_PAGE}
+'''
+
+[tasks.copy-static-files]
+script = "cp ./static/* ${OUT_DIR}"
+
+[tasks.build-site]
+script_runner = "@duckscript"
+script = '''
+set_env CURRENT_PAGE ./content/post.md 
+cm_run_task build-page
+'''
+
+[tasks.default]
+clear = true
+dependencies = [
+    "create-dirs",
+    "install-binaries",
+    "copy-static-files",
+    "build-site",
+]
+
+[tasks.serve]
+clear = true
+install_crate = { crate_name="basic-http-server", binary="basic-http-server", test_arg="--help" }
+command = "basic-http-server"
+args = ["./public"]
