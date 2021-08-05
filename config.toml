@@ -1,18 +1,34 @@
-# The URL the site will be built for
 base_url = "https://billygoat.dev"
-
-# Whether to automatically compile all Sass files in the sass directory
-compile_sass = true
-
-# Whether to build a search index to be used later on by a JavaScript library
-build_search_index = false
-
+title = "billygoat.dev"
+description = "Straight from the goat's mouth."
 theme = "tale-zola"
 
+compile_sass = true
+build_search_index = false
+
+
+taxonomies = [{ name="tags" }]
+
 [markdown]
-# Whether to do syntax highlighting
-# Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
 highlight_code = true
 
 [extra]
-# Put all your custom variables here
+author = "Billy"
+
+# Menu items
+[[extra.menu]]
+name = "Posts"
+url = "/"
+
+[[extra.menu]]
+name = "Tags"
+url = "tags"
+
+[[extra.menu]]
+name = "About"
+url = "about"
+
+[extra.footer]
+start_year = "2020"  # start year of the site
+end_year = "2021"    # end year of the site
+info = "The information on the footer."
